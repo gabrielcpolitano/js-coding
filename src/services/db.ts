@@ -217,3 +217,15 @@ export async function deleteBatch(id: string) {
     console.error("Error deleting batch:", error);
   }
 }
+
+export async function getXp() {
+  try {
+    const result = await sql`
+      SELECT COUNT(*) as count FROM progress WHERE is_correct = true
+    `;
+    return parseInt(result[0]?.count || "0");
+  } catch (error) {
+    console.error("Error fetching XP:", error);
+    return 0;
+  }
+}

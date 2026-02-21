@@ -19,14 +19,19 @@ import {
   PlayCircle,
   Bookmark,
   Trash2,
-  Library
+  Library,
+  Timer,
+  Trophy,
+  Play,
+  Pause,
+  RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { generateExercises, Exercise } from './services/geminiService';
-import { initDatabase, saveExercises, saveProgress, getHistory, saveSession, getSession, saveSavedQuestion, getSavedQuestions, deleteSavedQuestion, saveBatch, getBatches, deleteBatch } from './services/db';
+import { initDatabase, saveExercises, saveProgress, getHistory, saveSession, getSession, saveSavedQuestion, getSavedQuestions, deleteSavedQuestion, saveBatch, getBatches, deleteBatch, getXp } from './services/db';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -44,6 +49,10 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [savedBatches, setSavedBatches] = useState<any[]>([]);
+  const [xp, setXp] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timerInput, setTimerInput] = useState('10'); // Default 10 minutes
   
   const [userCodes, setUserCodes] = useState<Record<string, string>>({});
   const [results, setResults] = useState<Record<string, { correct: boolean; feedback: string } | null>>({});
@@ -65,6 +74,15 @@ export default function App() {
       setSavedBatches(data);
     } catch (err) {
       console.error("Failed to fetch saved batches:", err);
+    }
+  };
+
+  const fetchXp = async () => {
+    try {
+      const totalXp = await getXp();
+      setXp(totalXp);
+    } catch (err) {
+      console.error("Failed to fetch XP:", err);
     }
   };
 
@@ -117,9 +135,59 @@ export default function App() {
       
       fetchHistory();
       fetchSavedBatches();
+      fetchXp();
     };
     init();
   }, []);
+
+  // Timer effect
+  useEffect(() => {
+    let interval: any;
+    if (isTimerRunning && seconds > 0) {
+      interval = setInterval(() => {
+        setSeconds(s => {
+          if (s <= 1) {
+            setIsTimerRunning(false);
+            setError("Time's up! Focus and try to finish the batch.");
+            return 0;
+          }
+          return s - 1;
+        });
+      }, 1000);
+    } else if (seconds === 0) {
+      setIsTimerRunning(false);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning, seconds]);
+
+  const startTimer = () => {
+    if (seconds === 0) {
+      const mins = parseInt(timerInput) || 0;
+      if (mins > 0) {
+        setSeconds(mins * 60);
+        setIsTimerRunning(true);
+      }
+    } else {
+      setIsTimerRunning(true);
+    }
+  };
+
+  const pauseTimer = () => {
+    setIsTimerRunning(false);
+  };
+
+  const resetTimer = () => {
+    setIsTimerRunning(false);
+    const mins = parseInt(timerInput) || 0;
+    setSeconds(mins * 60);
+  };
+
+  const formatTime = (totalSeconds: number) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return `${hrs > 0 ? `${hrs}:` : ''}${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Persist session to DB whenever relevant state changes
   useEffect(() => {
@@ -184,6 +252,9 @@ export default function App() {
 
       // Save progress to DB directly from browser
       await saveProgress(exercise.id, code, result.correct, result.feedback);
+      if (result.correct) {
+        setXp(prev => prev + 1);
+      }
       fetchHistory(); // Refresh history
     } catch (err: any) {
       result = { correct: false, feedback: `Syntax Error: ${err.message}` };
@@ -247,6 +318,58 @@ export default function App() {
           </div>
           
           <div className="hidden md:flex items-center gap-4">
+            <div className="flex items-center gap-6 mr-4 pr-6 border-r border-zinc-800">
+              <div className="flex items-center gap-3 bg-zinc-900/50 px-3 py-1.5 rounded-xl border border-zinc-800">
+                <div className="flex items-center gap-2">
+                  <Timer className={cn("w-4 h-4", isTimerRunning ? "text-emerald-500 animate-pulse" : "text-zinc-500")} />
+                  <span className={cn("text-sm font-mono w-16 text-center", seconds === 0 ? "text-zinc-600" : "text-white")}>
+                    {formatTime(seconds)}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-1 border-l border-zinc-800 pl-3">
+                  {!isTimerRunning ? (
+                    <button 
+                      onClick={startTimer}
+                      className="p-1 hover:bg-emerald-500/10 text-emerald-500 rounded transition-colors"
+                      title="Start Timer"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={pauseTimer}
+                      className="p-1 hover:bg-amber-500/10 text-amber-500 rounded transition-colors"
+                      title="Pause Timer"
+                    >
+                      <Pause className="w-3.5 h-3.5 fill-current" />
+                    </button>
+                  )}
+                  <button 
+                    onClick={resetTimer}
+                    className="p-1 hover:bg-zinc-800 text-zinc-500 rounded transition-colors"
+                    title="Reset Timer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                  <div className="flex items-center gap-1 ml-1">
+                    <input 
+                      type="number"
+                      value={timerInput}
+                      onChange={(e) => setTimerInput(e.target.value)}
+                      className="w-8 bg-transparent text-[10px] font-bold text-zinc-500 focus:outline-none focus:text-emerald-500 transition-colors text-center"
+                      placeholder="Min"
+                    />
+                    <span className="text-[8px] text-zinc-700 font-bold uppercase">Min</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 text-zinc-400">
+                <Trophy className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-bold text-white">{xp} <span className="text-zinc-500 text-[10px] uppercase">XP</span></span>
+              </div>
+            </div>
             <button 
               onClick={() => setActiveTab('training')}
               className={cn(
