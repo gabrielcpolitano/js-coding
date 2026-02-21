@@ -229,3 +229,31 @@ export async function getXp() {
     return 0;
   }
 }
+
+export async function getWeeklyXp() {
+  try {
+    const result = await sql`
+      WITH days AS (
+        SELECT generate_series(
+          date_trunc('day', CURRENT_TIMESTAMP) - interval '6 days',
+          date_trunc('day', CURRENT_TIMESTAMP),
+          interval '1 day'
+        )::date as day
+      )
+      SELECT 
+        d.day,
+        COUNT(p.id) as count
+      FROM days d
+      LEFT JOIN progress p ON date_trunc('day', p.completed_at)::date = d.day AND p.is_correct = true
+      GROUP BY d.day
+      ORDER BY d.day;
+    `;
+    return result.map(r => ({
+      day: r.day,
+      xp: parseInt(r.count)
+    }));
+  } catch (error) {
+    console.error("Error fetching weekly XP:", error);
+    return [];
+  }
+}

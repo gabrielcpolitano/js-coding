@@ -24,14 +24,26 @@ import {
   Trophy,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from 'recharts';
 import { generateExercises, Exercise } from './services/geminiService';
-import { initDatabase, saveExercises, saveProgress, getHistory, saveSession, getSession, saveSavedQuestion, getSavedQuestions, deleteSavedQuestion, saveBatch, getBatches, deleteBatch, getXp } from './services/db';
+import { initDatabase, saveExercises, saveProgress, getHistory, saveSession, getSession, saveSavedQuestion, getSavedQuestions, deleteSavedQuestion, saveBatch, getBatches, deleteBatch, getXp, getWeeklyXp } from './services/db';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -40,7 +52,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'training' | 'history' | 'saved'>('training');
+  const [activeTab, setActiveTab] = useState<'training' | 'history' | 'saved' | 'stats'>('training');
   const [level, setLevel] = useState(1);
   const [topic, setTopic] = useState('');
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -50,6 +62,7 @@ export default function App() {
   const [history, setHistory] = useState<any[]>([]);
   const [savedBatches, setSavedBatches] = useState<any[]>([]);
   const [xp, setXp] = useState(0);
+  const [weeklyXp, setWeeklyXp] = useState<any[]>([]);
   const [seconds, setSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerInput, setTimerInput] = useState('10'); // Default 10 minutes
@@ -83,6 +96,28 @@ export default function App() {
       setXp(totalXp);
     } catch (err) {
       console.error("Failed to fetch XP:", err);
+    }
+  };
+
+  const fetchWeeklyXpData = async () => {
+    try {
+      const data = await getWeeklyXp();
+      const dayMap: Record<number, string> = {
+        0: 'D', 1: 'S', 2: 'T', 3: 'Q', 4: 'Q', 5: 'S', 6: 'S'
+      };
+      
+      const chartData = data.map((item: any) => {
+        const date = new Date(item.day);
+        // Adjust for timezone if necessary, but date_trunc returns local day start usually
+        return {
+          name: dayMap[date.getUTCDay()],
+          xp: item.xp,
+          fullDate: item.day
+        };
+      });
+      setWeeklyXp(chartData);
+    } catch (err) {
+      console.error("Failed to fetch weekly XP:", err);
     }
   };
 
@@ -136,6 +171,7 @@ export default function App() {
       fetchHistory();
       fetchSavedBatches();
       fetchXp();
+      fetchWeeklyXpData();
     };
     init();
   }, []);
@@ -254,6 +290,7 @@ export default function App() {
       await saveProgress(exercise.id, code, result.correct, result.feedback);
       if (result.correct) {
         setXp(prev => prev + 1);
+        fetchWeeklyXpData();
       }
       fetchHistory(); // Refresh history
     } catch (err: any) {
@@ -398,6 +435,16 @@ export default function App() {
             >
               <Bookmark className="w-4 h-4" />
               Saved
+            </button>
+            <button 
+              onClick={() => setActiveTab('stats')}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                activeTab === 'stats' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
+              )}
+            >
+              <BarChart3 className="w-4 h-4" />
+              Stats
             </button>
           </div>
         </div>
@@ -656,6 +703,7 @@ export default function App() {
           </div>
         ) : activeTab === 'history' ? (
           <div className="space-y-6">
+            {/* ... History content ... */}
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                 <HistoryIcon className="w-6 h-6 text-emerald-500" />
@@ -707,7 +755,7 @@ export default function App() {
               )}
             </div>
           </div>
-        ) : (
+        ) : activeTab === 'saved' ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -767,6 +815,97 @@ export default function App() {
               )}
             </div>
           </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto"
+          >
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 backdrop-blur-sm shadow-2xl">
+              <div className="flex items-center justify-between mb-12">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                    <Trophy className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Seu Desempenho</h2>
+                    <p className="text-zinc-500 text-sm">Progresso de XP nos últimos 7 dias</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-black text-white tracking-tight">
+                    {xp} <span className="text-emerald-500 text-sm font-bold uppercase tracking-widest">XP Total</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mt-1">Nível de Maestria Atual</p>
+                </div>
+              </div>
+
+              <div className="h-[350px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={weeklyXp} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" opacity={0.5} />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#71717a', fontSize: 12, fontWeight: 600 }}
+                      dy={15}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#71717a', fontSize: 12 }}
+                      tickCount={6}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#09090b', 
+                        border: '1px solid #27272a',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
+                      itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                      cursor={{ stroke: '#10b981', strokeWidth: 1, strokeDasharray: '5 5' }}
+                      labelStyle={{ color: '#71717a', marginBottom: '4px' }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="xp" 
+                      stroke="#10b981" 
+                      strokeWidth={3}
+                      fillOpacity={1} 
+                      fill="url(#colorXp)"
+                      dot={{ fill: '#ffffff', stroke: '#10b981', strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 8, fill: '#ffffff', stroke: '#10b981', strokeWidth: 3 }}
+                      animationDuration={1500}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="mt-12 grid grid-cols-7 gap-4 pt-8 border-t border-zinc-800/50">
+                {weeklyXp.map((day, i) => (
+                  <div key={i} className="flex flex-col items-center gap-3">
+                    <div className={cn(
+                      "w-3 h-3 rounded-full transition-all duration-500",
+                      day.xp > 0 ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.6)] scale-110" : "bg-zinc-800"
+                    )} />
+                    <div className="flex flex-col items-center">
+                      <span className="text-xs text-white font-bold">{day.xp}</span>
+                      <span className="text-[10px] text-zinc-500 font-black uppercase tracking-tighter">{day.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         )}
       </main>
 
