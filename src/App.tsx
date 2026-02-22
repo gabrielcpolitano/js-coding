@@ -349,29 +349,29 @@ export default function App() {
               <Code2 className="text-black w-6 h-6" />
             </div>
             <div>
-              <h1 className="font-bold text-lg tracking-tight">CodeMaster <span className="text-emerald-500">100</span></h1>
-              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">10-Exercise Batch Mode</p>
+              <h1 className="font-bold text-base md:text-lg tracking-tight leading-none">CodeMaster <span className="text-emerald-500">100</span></h1>
+              <p className="hidden sm:block text-[8px] md:text-[10px] uppercase tracking-widest text-zinc-500 font-semibold mt-0.5">10-Exercise Batch Mode</p>
             </div>
           </div>
           
-          <div className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-6 mr-4 pr-6 border-r border-zinc-800">
-              <div className="flex items-center gap-3 bg-zinc-900/50 px-3 py-1.5 rounded-xl border border-zinc-800">
-                <div className="flex items-center gap-2">
-                  <Timer className={cn("w-4 h-4", isTimerRunning ? "text-emerald-500 animate-pulse" : "text-zinc-500")} />
-                  <span className={cn("text-sm font-mono w-16 text-center", seconds === 0 ? "text-zinc-600" : "text-white")}>
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-3 md:gap-6 md:mr-4 md:pr-6 md:border-r border-zinc-800">
+              <div className="flex items-center gap-1.5 md:gap-3 bg-zinc-900/50 px-2 md:px-3 py-1 md:py-1.5 rounded-xl border border-zinc-800">
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <Timer className={cn("w-3.5 h-3.5 md:w-4 h-4", isTimerRunning ? "text-emerald-500 animate-pulse" : "text-zinc-500")} />
+                  <span className={cn("text-xs md:text-sm font-mono w-12 md:w-16 text-center", seconds === 0 ? "text-zinc-600" : "text-white")}>
                     {formatTime(seconds)}
                   </span>
                 </div>
                 
-                <div className="flex items-center gap-1 border-l border-zinc-800 pl-3">
+                <div className="flex items-center gap-1 border-l border-zinc-800 pl-2 md:pl-3">
                   {!isTimerRunning ? (
                     <button 
                       onClick={startTimer}
                       className="p-1 hover:bg-emerald-500/10 text-emerald-500 rounded transition-colors"
                       title="Start Timer"
                     >
-                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <Play className="w-3 h-3 md:w-3.5 h-3.5 fill-current" />
                     </button>
                   ) : (
                     <button 
@@ -379,22 +379,22 @@ export default function App() {
                       className="p-1 hover:bg-amber-500/10 text-amber-500 rounded transition-colors"
                       title="Pause Timer"
                     >
-                      <Pause className="w-3.5 h-3.5 fill-current" />
+                      <Pause className="w-3 h-3 md:w-3.5 h-3.5 fill-current" />
                     </button>
                   )}
                   <button 
                     onClick={resetTimer}
-                    className="p-1 hover:bg-zinc-800 text-zinc-500 rounded transition-colors"
+                    className="hidden sm:block p-1 hover:bg-zinc-800 text-zinc-500 rounded transition-colors"
                     title="Reset Timer"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
+                    <RotateCcw className="w-3 h-3 md:w-3.5 h-3.5" />
                   </button>
-                  <div className="flex items-center gap-1 ml-1">
+                  <div className="hidden sm:flex items-center gap-1 ml-1">
                     <input 
                       type="number"
                       value={timerInput}
                       onChange={(e) => setTimerInput(e.target.value)}
-                      className="w-8 bg-transparent text-[10px] font-bold text-zinc-500 focus:outline-none focus:text-emerald-500 transition-colors text-center"
+                      className="w-6 md:w-8 bg-transparent text-[10px] font-bold text-zinc-500 focus:outline-none focus:text-emerald-500 transition-colors text-center"
                       placeholder="Min"
                     />
                     <span className="text-[8px] text-zinc-700 font-bold uppercase">Min</span>
@@ -402,55 +402,58 @@ export default function App() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 text-zinc-400">
-                <Trophy className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-bold text-white">{xp} <span className="text-zinc-500 text-[10px] uppercase">XP</span></span>
+              <div className="flex items-center gap-1.5 md:gap-2 text-zinc-400">
+                <Trophy className="w-3.5 h-3.5 md:w-4 h-4 text-amber-500" />
+                <span className="text-xs md:text-sm font-bold text-white">{xp} <span className="hidden sm:inline text-zinc-500 text-[10px] uppercase">XP</span></span>
               </div>
             </div>
-            <button 
-              onClick={() => setActiveTab('training')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                activeTab === 'training' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
-              )}
-            >
-              Training
-            </button>
-            <button 
-              onClick={() => setActiveTab('history')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
-                activeTab === 'history' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
-              )}
-            >
-              <HistoryIcon className="w-4 h-4" />
-              History
-            </button>
-            <button 
-              onClick={() => setActiveTab('saved')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
-                activeTab === 'saved' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
-              )}
-            >
-              <Bookmark className="w-4 h-4" />
-              Saved
-            </button>
-            <button 
-              onClick={() => setActiveTab('stats')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
-                activeTab === 'stats' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
-              )}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Stats
-            </button>
+            
+            <div className="hidden md:flex items-center gap-2">
+              <button 
+                onClick={() => setActiveTab('training')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  activeTab === 'training' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
+                )}
+              >
+                Training
+              </button>
+              <button 
+                onClick={() => setActiveTab('history')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                  activeTab === 'history' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
+                )}
+              >
+                <HistoryIcon className="w-4 h-4" />
+                History
+              </button>
+              <button 
+                onClick={() => setActiveTab('saved')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                  activeTab === 'saved' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
+                )}
+              >
+                <Bookmark className="w-4 h-4" />
+                Saved
+              </button>
+              <button 
+                onClick={() => setActiveTab('stats')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                  activeTab === 'stats' ? "bg-emerald-500/10 text-emerald-500" : "text-zinc-400 hover:text-zinc-200"
+                )}
+              >
+                <BarChart3 className="w-4 h-4" />
+                Stats
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-6 md:py-8 pb-24 md:pb-8">
         {activeTab === 'training' ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* ... Training UI ... */}
@@ -504,20 +507,20 @@ export default function App() {
               </div>
 
               {exercises.length > 0 && (
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 space-y-2">
-                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 px-2 mb-2">Progress</h3>
-                  <div className="space-y-1">
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4">
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 px-2 mb-3">Progress</h3>
+                  <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-hide">
                     {exercises.map((ex, idx) => (
                       <button
                         key={ex.id}
                         onClick={() => setCurrentIndex(idx)}
                         className={cn(
-                          "w-full text-left px-3 py-2 rounded-lg text-xs transition-all flex items-center justify-between group",
-                          currentIndex === idx ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "text-zinc-500 hover:bg-zinc-800"
+                          "flex-none lg:w-full text-left px-3 py-2 rounded-lg text-xs transition-all flex items-center justify-between gap-3 group whitespace-nowrap lg:whitespace-normal",
+                          currentIndex === idx ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "text-zinc-500 hover:bg-zinc-800 border border-transparent"
                         )}
                       >
-                        <span className="truncate max-w-[140px]">{idx + 1}. {ex.title}</span>
-                        {results[ex.id]?.correct && <Check className="w-3 h-3 text-emerald-500" />}
+                        <span className="truncate max-w-[120px] lg:max-w-none">{idx + 1}. {ex.title}</span>
+                        {results[ex.id]?.correct && <Check className="w-3 h-3 text-emerald-500 shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -549,7 +552,7 @@ export default function App() {
                     className="space-y-6"
                   >
                     {/* Title & Meta */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20 uppercase tracking-widest">
@@ -559,32 +562,34 @@ export default function App() {
                             Level {currentExercise.level}
                           </span>
                         </div>
-                        <h2 className="text-3xl font-bold tracking-tight text-white">{currentExercise.title}</h2>
+                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white">{currentExercise.title}</h2>
                       </div>
                       
                       <div className="flex gap-2">
                         <button 
                           onClick={handleSaveBatch}
-                          className="p-2 bg-zinc-800 hover:bg-zinc-700 text-emerald-500 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold px-3"
+                          className="flex-1 md:flex-none p-2 bg-zinc-800 hover:bg-zinc-700 text-emerald-500 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs font-bold px-3"
                           title="Save Entire Batch of 10"
                         >
                           <Library className="w-4 h-4" />
-                          Save Batch
+                          <span className="md:hidden lg:inline">Save Batch</span>
                         </button>
-                        <button 
-                          disabled={currentIndex === 0}
-                          onClick={() => setCurrentIndex(prev => prev - 1)}
-                          className="p-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 rounded-lg transition-colors"
-                        >
-                          <ChevronRight className="w-5 h-5 rotate-180" />
-                        </button>
-                        <button 
-                          disabled={currentIndex === exercises.length - 1}
-                          onClick={() => setCurrentIndex(prev => prev + 1)}
-                          className="p-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 rounded-lg transition-colors"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
+                        <div className="flex gap-2">
+                          <button 
+                            disabled={currentIndex === 0}
+                            onClick={() => setCurrentIndex(prev => prev - 1)}
+                            className="p-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 rounded-lg transition-colors"
+                          >
+                            <ChevronRight className="w-5 h-5 rotate-180" />
+                          </button>
+                          <button 
+                            disabled={currentIndex === exercises.length - 1}
+                            onClick={() => setCurrentIndex(prev => prev + 1)}
+                            className="p-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 rounded-lg transition-colors"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -822,25 +827,25 @@ export default function App() {
             className="max-w-4xl mx-auto"
           >
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 backdrop-blur-sm shadow-2xl">
-              <div className="flex items-center justify-between mb-12">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
                     <Trophy className="w-6 h-6 text-emerald-500" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Seu Desempenho</h2>
+                    <h2 className="text-xl md:text-2xl font-bold text-white">Seu Desempenho</h2>
                     <p className="text-zinc-500 text-sm">Progresso de XP nos últimos 7 dias</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-black text-white tracking-tight">
+                <div className="sm:text-right">
+                  <div className="text-2xl md:text-3xl font-black text-white tracking-tight">
                     {xp} <span className="text-emerald-500 text-sm font-bold uppercase tracking-widest">XP Total</span>
                   </div>
                   <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mt-1">Nível de Maestria Atual</p>
                 </div>
               </div>
 
-              <div className="h-[350px] w-full">
+              <div className="h-[250px] md:h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={weeklyXp} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
@@ -892,16 +897,16 @@ export default function App() {
                 </ResponsiveContainer>
               </div>
               
-              <div className="mt-12 grid grid-cols-7 gap-4 pt-8 border-t border-zinc-800/50">
+              <div className="mt-12 grid grid-cols-7 gap-2 md:gap-4 pt-8 border-t border-zinc-800/50">
                 {weeklyXp.map((day, i) => (
-                    <div key={i} className="flex flex-col items-center gap-3">
+                    <div key={i} className="flex flex-col items-center gap-2 md:gap-3">
                       <div className={cn(
-                        "w-3 h-3 rounded-full transition-all duration-500",
+                        "w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-500",
                         day.xp > 0 ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.6)] scale-110" : "bg-zinc-800"
                       )} />
                       <div className="flex flex-col items-center">
-                        <span className="text-xs text-white font-bold">{day.xp}</span>
-                        <span className="text-[10px] text-zinc-500 font-black uppercase tracking-tighter">{day.dayLabel}</span>
+                        <span className="text-[10px] md:text-xs text-white font-bold">{day.xp}</span>
+                        <span className="text-[8px] md:text-[10px] text-zinc-500 font-black uppercase tracking-tighter">{day.dayLabel}</span>
                       </div>
                     </div>
                 ))}
@@ -910,6 +915,52 @@ export default function App() {
           </motion.div>
         )}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-lg border-t border-zinc-800 z-50 px-4 py-3">
+        <div className="flex items-center justify-around">
+          <button 
+            onClick={() => setActiveTab('training')}
+            className={cn(
+              "flex flex-col items-center gap-1 transition-all",
+              activeTab === 'training' ? "text-emerald-500" : "text-zinc-500"
+            )}
+          >
+            <Zap className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Train</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('history')}
+            className={cn(
+              "flex flex-col items-center gap-1 transition-all",
+              activeTab === 'history' ? "text-emerald-500" : "text-zinc-500"
+            )}
+          >
+            <HistoryIcon className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">History</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('saved')}
+            className={cn(
+              "flex flex-col items-center gap-1 transition-all",
+              activeTab === 'saved' ? "text-emerald-500" : "text-zinc-500"
+            )}
+          >
+            <Bookmark className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Saved</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('stats')}
+            className={cn(
+              "flex flex-col items-center gap-1 transition-all",
+              activeTab === 'stats' ? "text-emerald-500" : "text-zinc-500"
+            )}
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Stats</span>
+          </button>
+        </div>
+      </nav>
 
       {/* Error Toast */}
       <AnimatePresence>
