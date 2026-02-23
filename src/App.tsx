@@ -61,6 +61,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [visibleHistoryCount, setVisibleHistoryCount] = useState(6);
   const [savedBatches, setSavedBatches] = useState<any[]>([]);
   const [xp, setXp] = useState(0);
   const [weeklyXp, setWeeklyXp] = useState<any[]>([]);
@@ -749,7 +750,7 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {history.map((item) => (
+              {history.slice(0, visibleHistoryCount).map((item) => (
                 <motion.div
                   key={item.id}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -790,6 +791,18 @@ export default function App() {
                 </div>
               )}
             </div>
+
+            {history.length > visibleHistoryCount && (
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={() => setVisibleHistoryCount(prev => prev + 6)}
+                  className="px-8 py-3 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 text-zinc-400 hover:text-emerald-500 font-bold rounded-xl transition-all flex items-center gap-2 group"
+                >
+                  <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+                  Show More History
+                </button>
+              </div>
+            )}
           </div>
         ) : activeTab === 'saved' ? (
           <div className="space-y-6">
