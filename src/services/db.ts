@@ -257,3 +257,33 @@ export async function getWeeklyXp() {
     return [];
   }
 }
+
+export async function getStreak() {
+  try {
+    const result = await sql`
+      WITH daily_activity AS (
+        SELECT DISTINCT date_trunc('day', completed_at)::date as activity_date
+        FROM progress
+        WHERE is_correct = true
+      ),
+      streak_groups AS (
+        SELECT 
+          activity_date,
+          activity_date - (ROW_NUMBER() OVER (ORDER BY activity_date))::int as grp
+        FROM daily_activity
+      )
+      SELECT COUNT(*) as streak
+      FROM streak_groups
+      WHERE grp = (
+        SELECT grp 
+        FROM streak_groups 
+        WHERE activity_date = (SELECT MAX(activity_date) FROM daily_activity)
+      )
+      AND (SELECT MAX(activity_date) FROM daily_activity) >= CURRENT_DATE - interval '1 day';
+    `;
+    return parseInt(result[0]?.streak || "0");
+  } catch (error) {
+    console.error("Error fetching streak:", error);
+    return 0;
+  }
+}

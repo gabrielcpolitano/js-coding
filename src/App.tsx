@@ -43,9 +43,10 @@ import {
   Area
 } from 'recharts';
 import { generateExercises, Exercise } from './services/geminiService';
-import { initDatabase, saveExercises, saveProgress, getHistory, saveSession, getSession, saveSavedQuestion, getSavedQuestions, deleteSavedQuestion, saveBatch, getBatches, deleteBatch, getXp, getWeeklyXp } from './services/db';
+import { initDatabase, saveExercises, saveProgress, getHistory, saveSession, getSession, saveSavedQuestion, getSavedQuestions, deleteSavedQuestion, saveBatch, getBatches, deleteBatch, getXp, getWeeklyXp, getStreak } from './services/db';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import confetti from 'canvas-confetti';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -63,6 +64,7 @@ export default function App() {
   const [savedBatches, setSavedBatches] = useState<any[]>([]);
   const [xp, setXp] = useState(0);
   const [weeklyXp, setWeeklyXp] = useState<any[]>([]);
+  const [streak, setStreak] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerInput, setTimerInput] = useState('10'); // Default 10 minutes
@@ -121,6 +123,15 @@ export default function App() {
     }
   };
 
+  const fetchStreakData = async () => {
+    try {
+      const data = await getStreak();
+      setStreak(data);
+    } catch (err) {
+      console.error("Failed to fetch streak:", err);
+    }
+  };
+
   const fetchExercises = async () => {
     setLoading(true);
     setError(null);
@@ -172,6 +183,7 @@ export default function App() {
       fetchSavedBatches();
       fetchXp();
       fetchWeeklyXpData();
+      fetchStreakData();
     };
     init();
   }, []);
@@ -291,6 +303,19 @@ export default function App() {
       if (result.correct) {
         setXp(prev => prev + 1);
         fetchWeeklyXpData();
+        fetchStreakData();
+        
+        // Check if batch is complete
+        const updatedResults = { ...results, [exercise.id]: result };
+        const correctCount = Object.values(updatedResults).filter(r => r?.correct).length;
+        if (correctCount === exercises.length && exercises.length > 0) {
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#10b981', '#ffffff', '#34d399']
+          });
+        }
       }
       fetchHistory(); // Refresh history
     } catch (err: any) {
@@ -406,6 +431,12 @@ export default function App() {
                 <Trophy className="w-3.5 h-3.5 md:w-4 h-4 text-amber-500" />
                 <span className="text-xs md:text-sm font-bold text-white">{xp} <span className="hidden sm:inline text-zinc-500 text-[10px] uppercase">XP</span></span>
               </div>
+              {streak > 0 && (
+                <div className="flex items-center gap-1.5 md:gap-2 text-orange-500 bg-orange-500/10 px-2 py-1 rounded-lg border border-orange-500/20">
+                  <Zap className="w-3.5 h-3.5 md:w-4 h-4 fill-current" />
+                  <span className="text-xs md:text-sm font-bold">{streak}</span>
+                </div>
+              )}
             </div>
             
             <div className="hidden md:flex items-center gap-2">
@@ -841,7 +872,15 @@ export default function App() {
                   <div className="text-2xl md:text-3xl font-black text-white tracking-tight">
                     {xp} <span className="text-emerald-500 text-sm font-bold uppercase tracking-widest">XP Total</span>
                   </div>
-                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mt-1">Nível de Maestria Atual</p>
+                  <div className="flex items-center sm:justify-end gap-2 mt-1">
+                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter">Nível de Maestria Atual</p>
+                    {streak > 0 && (
+                      <div className="flex items-center gap-1 text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">
+                        <Zap className="w-3 h-3 fill-current" />
+                        <span className="text-[10px] font-bold">{streak} Dias de Fogo</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
