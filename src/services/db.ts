@@ -70,6 +70,21 @@ export async function initDatabase() {
             saved_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
           );
         END IF;
+
+        IF NOT EXISTS (SELECT FROM pg_tables WHERE tablename = 'daily_xp') THEN
+          CREATE TABLE daily_xp (
+            date DATE PRIMARY KEY,
+            xp INTEGER DEFAULT 0
+          );
+          
+          -- Initial migration from existing progress
+          INSERT INTO daily_xp (date, xp)
+          SELECT date_trunc('day', completed_at)::date as date, COUNT(*) as xp
+          FROM progress
+          WHERE is_correct = true
+          GROUP BY date_trunc('day', completed_at)::date
+          ON CONFLICT (date) DO UPDATE SET xp = EXCLUDED.xp;
+        END IF;
       END $$;
     `;
     console.log("Neon Database Initialized directly from browser");
@@ -104,6 +119,14 @@ export async function saveProgress(exerciseId: string, userCode: string, isCorre
       INSERT INTO progress (exercise_id, user_code, is_correct, feedback)
       VALUES (${exerciseId}, ${userCode}, ${isCorrect}, ${feedback})
     `;
+
+    if (isCorrect) {
+      await sql`
+        INSERT INTO daily_xp (date, xp)
+        VALUES (CURRENT_DATE, 1)
+        ON CONFLICT (date) DO UPDATE SET xp = daily_xp.xp + 1
+      `;
+    }
   } catch (error) {
     console.error("Error saving progress:", error);
   }
@@ -221,7 +244,7 @@ export async function deleteBatch(id: string) {
 export async function getXp() {
   try {
     const result = await sql`
-      SELECT COUNT(*) as count FROM progress WHERE is_correct = true
+      SELECT SUM(xp) as count FROM daily_xp
     `;
     return parseInt(result[0]?.count || "0");
   } catch (error) {
@@ -242,10 +265,9 @@ export async function getWeeklyXp() {
       )
       SELECT 
         d.day,
-        COUNT(p.id) as count
+        COALESCE(dx.xp, 0) as count
       FROM days d
-      LEFT JOIN progress p ON date_trunc('day', p.completed_at)::date = d.day AND p.is_correct = true
-      GROUP BY d.day
+      LEFT JOIN daily_xp dx ON dx.date = d.day
       ORDER BY d.day;
     `;
     return result.map(r => ({
@@ -262,9 +284,9 @@ export async function getStreak() {
   try {
     const result = await sql`
       WITH daily_activity AS (
-        SELECT DISTINCT date_trunc('day', completed_at)::date as activity_date
-        FROM progress
-        WHERE is_correct = true
+        SELECT date as activity_date
+        FROM daily_xp
+        WHERE xp > 0
       ),
       streak_groups AS (
         SELECT 

@@ -302,7 +302,7 @@ export default function App() {
       // Save progress to DB directly from browser
       await saveProgress(exercise.id, code, result.correct, result.feedback);
       if (result.correct) {
-        setXp(prev => prev + 1);
+        fetchXp();
         fetchWeeklyXpData();
         fetchStreakData();
         
